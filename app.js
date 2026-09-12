@@ -71,6 +71,41 @@ function save() {
 }
 
 /* --------------------------------------------------------------------------
+   デモデータ（プレビュー用）
+   参加者名は仮のものです。実際のメンバーに差し替えて使ってください。
+   -------------------------------------------------------------------------- */
+
+const DEMO_PLAYERS = [
+  '佐藤', '鈴木', '高橋', '田中',
+  '伊藤', '渡辺', '山本', '中村',
+  '小林', '加藤', '吉田', '山田',
+  '佐々木', '山口', '松本', '井上',
+];
+
+// 1卓ぶんの持ち点（合計100,000点）。デモを毎回同じ見た目にするため固定値を使う。
+const DEMO_SCORES = {
+  round1: [
+    [42300, 28900, 21800, 7000],
+    [35600, 31200, 19700, 13500],
+    [48100, 25400, 16800, 9700],
+    [38900, 27300, 22400, 11400],
+  ],
+  round2: [
+    [51200, 26800, 13500, 8500],
+    [33400, 30100, 24200, 12300],
+    [45700, 24900, 18600, 10800],
+    [39200, 28600, 21100, 11100],
+  ],
+  // 3回戦は途中まで入力した状態にして、リアルタイム集計の様子を見せる
+  round3: [
+    [44500, 27200, 17300, 11000],
+    [36800, 29400, 20500, 13300],
+  ],
+};
+
+const DEMO_CHIPS = { 2: 3, 5: -1, 9: 1 }; // プレイヤーの並び順 → チップ枚数
+
+/* --------------------------------------------------------------------------
    Utilities
    -------------------------------------------------------------------------- */
 
@@ -432,6 +467,54 @@ function compareTotal(a, b, standings) {
   return a.name.localeCompare(b.name, 'ja');
 }
 
+/**
+ * プレビュー用のデモデータを読み込む。
+ * 1〜2回戦を確定させ、3回戦を途中まで入力した「大会の最中」の状態を作る。
+ */
+function loadDemoData() {
+  if (state.players.length &&
+      !confirm('現在の登録内容と対局結果をすべて消して、デモデータを読み込みます。よろしいですか？')) {
+    return;
+  }
+
+  state = defaultState();
+  state.settings.title = '第3回 マイマイカップ（デモ）';
+  state.players = DEMO_PLAYERS.map(name => ({ id: uid(), name, chips: 0 }));
+  for (const [idx, chips] of Object.entries(DEMO_CHIPS)) {
+    if (state.players[idx]) state.players[idx].chips = chips;
+  }
+
+  // 1回戦は登録順どおりに着席させる（デモなので抽選せず毎回同じ並びにする）
+  const round1 = ensureRound(0);
+  round1.method = 'random';
+  round1.byes = [];
+  round1.tables = chunk(state.players.map(p => p.id), SEATS).map((seats, i) => ({
+    id: uid(),
+    no: i + 1,
+    seats,
+    scores: [...(DEMO_SCORES.round1[i] || [null, null, null, null])],
+    locked: false,
+  }));
+
+  // 2回戦は順位卓、3回戦は総合順位順（どちらも1回戦の結果から一意に決まる）
+  generateRound(1, 'rank');
+  state.rounds[1].tables.forEach((table, i) => {
+    if (DEMO_SCORES.round2[i]) table.scores = [...DEMO_SCORES.round2[i]];
+  });
+
+  generateRound(2, 'total');
+  state.rounds[2].tables.forEach((table, i) => {
+    if (DEMO_SCORES.round3[i]) table.scores = [...DEMO_SCORES.round3[i]];
+  });
+
+  currentRound = 2;
+  swapSel = null;
+  save();
+  renderAll();
+  switchView('standings');
+  toast('デモデータを読み込みました');
+}
+
 /* --------------------------------------------------------------------------
    View: 対局（卓組み + スコア入力）
    -------------------------------------------------------------------------- */
@@ -444,8 +527,9 @@ function renderMatch() {
     root.appendChild(el('div', { class: 'card' },
       el('div', { class: 'empty' },
         el('div', { text: 'まずはプレイヤーを登録してください' }),
-        el('div', { style: 'margin-top:12px' },
-          el('button', { class: 'btn primary', onclick: () => switchView('players') }, 'プレイヤー登録へ')
+        el('div', { class: 'row', style: 'margin-top:12px;justify-content:center' },
+          el('button', { class: 'btn primary', onclick: () => switchView('players') }, 'プレイヤー登録へ'),
+          el('button', { class: 'btn', onclick: loadDemoData }, 'デモデータを見る')
         )
       )
     ));
@@ -921,7 +1005,11 @@ function renderPlayers() {
       ),
       state.players.length % SEATS !== 0
         ? el('p', { class: 'hint' }, `⚠️ 現在${state.players.length}人です。4の倍数でない分は自動で抜け番になります。`)
-        : null
+        : null,
+      el('div', { class: 'row', style: 'margin-top:10px' },
+        el('button', { class: 'btn small', onclick: loadDemoData }, 'デモデータを読み込む'),
+        el('span', { class: 'hint', style: 'margin:0' }, '16人ぶんの対局例を一括で読み込みます')
+      )
     )
   ));
 
