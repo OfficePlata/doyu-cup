@@ -344,3 +344,155 @@ main {
   .pill.ok { background: #17301f; color: #8fd6a8; border-color: #2f5c3f; }
   .pos { color: #6fa8ff; }
 }
+
+/* ==========================================================================
+   使い方ガイド（全画面オーバーレイ）
+   ========================================================================== */
+
+.guide-btn {
+  margin-left: auto;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, .45);
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 12px;
+  min-height: 34px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.guide-btn::before { content: '？'; margin-right: 3px; }
+.guide-btn:active { background: rgba(255, 255, 255, .25); }
+
+.guide {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+.guide[hidden] { display: none !important; }
+
+.guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(env(safe-area-inset-top) + 12px) 16px 12px;
+  background: linear-gradient(135deg, var(--green-900), var(--green-700));
+  color: #fff;
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+.guide-head .btn { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.45); color: #fff; }
+
+.guide-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px max(16px, env(safe-area-inset-left)) calc(32px + env(safe-area-inset-bottom));
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  scroll-behavior: smooth;
+}
+.guide-body h3 {
+  font-size: 16px;
+  color: var(--green-900);
+  border-left: 4px solid var(--green-500);
+  padding-left: 10px;
+  margin: 28px 0 10px;
+  scroll-margin-top: 8px;
+}
+.guide-body h3:first-of-type { margin-top: 18px; }
+.guide-body p { margin: 8px 0; }
+.guide-body ul { margin: 8px 0; padding-left: 20px; }
+.guide-body li { margin: 4px 0; }
+.guide-body code {
+  background: var(--green-050);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 13px;
+}
+.guide-body img {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  margin: 12px auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  background: var(--card);
+}
+
+.guide-lead {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.guide-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.guide-toc a {
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--green-900);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 12px;
+}
+
+.guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 13px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.guide-table th, .guide-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.guide-table th { width: 34%; color: var(--green-900); font-weight: 700; white-space: nowrap; }
+.guide-table tr:last-child th, .guide-table tr:last-child td { border-bottom: 0; }
+
+.guide-note {
+  background: var(--green-050);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--green-500);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.guide-faq { margin: 10px 0 0; }
+.guide-faq dt {
+  font-weight: 700;
+  color: var(--green-900);
+  margin-top: 14px;
+  font-size: 14px;
+}
+.guide-faq dt::before { content: 'Q. '; }
+.guide-faq dd { margin: 4px 0 0; font-size: 13px; line-height: 1.7; }
+
+body.guide-open { overflow: hidden; }

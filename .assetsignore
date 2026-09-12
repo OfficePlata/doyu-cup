@@ -7,5 +7,5 @@ README.md
 node_modules
 package.json
 package-lock.json
-docs
+# docs/images はページ内マニュアルで配信するため除外しない
 MANUAL.md

@@ -12,6 +12,7 @@
     <div class="title-wrap">
       <span class="logo">🀄</span>
       <h1 id="app-title">麻雀大会 スコア計算</h1>
+      <button type="button" id="guide-open" class="guide-btn">使い方</button>
     </div>
     <div class="header-meta" id="header-meta"></div>
   </header>
@@ -29,6 +30,130 @@
     <section id="view-players" class="view"></section>
     <section id="view-settings" class="view"></section>
   </main>
+
+
+  <!-- 使い方ガイド（全画面オーバーレイ）
+       内容は MANUAL.md と対になっています。片方を直したらもう片方も更新してください。 -->
+  <div id="guide" class="guide" hidden>
+    <div class="guide-head">
+      <strong>使い方</strong>
+      <button type="button" id="guide-close" class="btn small">閉じる</button>
+    </div>
+    <div class="guide-body">
+
+      <nav class="guide-toc">
+        <a href="#g1">1. 画面の見方</a>
+        <a href="#g2">2. プレイヤーを登録</a>
+        <a href="#g3">3. 卓組みを作る</a>
+        <a href="#g4">4. 点数を入力</a>
+        <a href="#g5">5. 総合順位を見る</a>
+        <a href="#g6">6. 2回戦以降</a>
+        <a href="#g7">7. ルールを変える</a>
+        <a href="#g8">8. 困ったときは</a>
+      </nav>
+
+      <p class="guide-lead">
+        スマホのブラウザだけで、卓組みから順位計算まで完結します。<br>
+        <strong>計算式：</strong>素点（(最終点 − 30,000) ÷ 1000）＋ ウマ（1位 +20 / 2位 +10 / 3位 −10 / 4位 −20）<br>
+        入力内容は<strong>自動保存</strong>されます。画面を閉じても消えません。
+      </p>
+
+      <h3 id="g1">1. 画面の見方</h3>
+      <img src="docs/images/01-start.webp" alt="起動直後の画面" loading="lazy" width="390" height="844">
+      <table class="guide-table">
+        <tr><th>対局</th><td>卓組みの作成と、点数の入力</td></tr>
+        <tr><th>総合順位</th><td>全員の順位をリアルタイム表示</td></tr>
+        <tr><th>プレイヤー</th><td>参加者の登録、チップの増減</td></tr>
+        <tr><th>設定</th><td>ウマ・回戦数・賞金などの変更</td></tr>
+      </table>
+      <p class="guide-note"><strong>ボタンの使い分け</strong><br>
+        <b>参加メンバーを登録</b>…名簿だけ登録して本番を始める／
+        <b>自分で入力する</b>…名前を手入力／
+        <b>デモを見る</b>…点数まで入った例で操作を試す。<br>
+        デモのあと本番を始めるときは、設定タブの「対局結果をリセット」で消してください。</p>
+
+      <h3 id="g2">2. プレイヤーを登録する</h3>
+      <p><strong>プレイヤー</strong>タブ →「参加メンバーを読み込む」を押すだけで名簿が入ります。</p>
+      <img src="docs/images/02-members-loaded.webp" alt="参加メンバーの読み込み" loading="lazy" width="390" height="844">
+      <p>読み込んだあとは<strong>自由に編集できます</strong>。名前をタップして書き換え、上の欄から追加、右の「削除」で除外。
+        <code>−</code> <code>＋</code> はチップの増減です（役満ボーナスやチョンボの記録に）。</p>
+      <img src="docs/images/03-players-list.webp" alt="登録済みプレイヤー一覧" loading="lazy" width="390" height="844">
+      <p class="guide-note">人数が4の倍数でなくてもそのまま進められます。あぶれた人は<strong>自動で抜け番</strong>になり、
+        抜け番の回数が少ない人から選ばれるので偏りません。27人なら<strong>6卓＋抜け番3人</strong>です。</p>
+
+      <h3 id="g3">3. 卓組みを作る</h3>
+      <p><strong>対局</strong>タブで回戦を選び、<strong>「卓組みを作成」</strong>を押すだけです。</p>
+      <img src="docs/images/04-match-empty.webp" alt="卓組み作成前" loading="lazy" width="390" height="844">
+      <table class="guide-table">
+        <tr><th>1回戦</th><td>ランダム抽選</td></tr>
+        <tr><th>2回戦</th><td>順位卓（1回戦の1位同士・2位同士…）</td></tr>
+        <tr><th>3回戦以降</th><td>総合順位順（1〜4位 / 5〜8位 …）</td></tr>
+      </table>
+      <img src="docs/images/05-tables-made.webp" alt="卓組み作成後" loading="lazy" width="390" height="844">
+      <p class="guide-note"><strong>席を入れ替えたいとき</strong>…名前をタップ → 相手の名前をタップ。抜け番の人とも入れ替えできます。<br>
+        <strong>やり直したいとき</strong>…「作り直す」。点数入力済みなら確認が出ます。</p>
+
+      <h3 id="g4">4. 点数を入力する</h3>
+      <p>終局後の持ち点をそのまま入力します（例：<code>42300</code>）。4人ぶん揃うと着順とポイントが自動計算されます。</p>
+      <img src="docs/images/06-score-entry.webp" alt="点数入力" loading="lazy" width="390" height="844">
+      <ul>
+        <li><strong>合計 100,000 / 100,000</strong> … ズレていると赤字で差分が出ます</li>
+        <li><strong>残り1人を自動計算</strong> … 3人ぶん入れれば4人目は自動で算出</li>
+        <li><strong>確定する</strong> … ロックして誤タップでの書き換えを防ぐ</li>
+        <li>右上が<strong>「入力完了」</strong>になればその卓は完了</li>
+      </ul>
+      <p class="guide-note">同点のときは<strong>席順（東 → 南 → 西 → 北）が上位</strong>。トビ（マイナス点）もそのまま入力できます。</p>
+
+      <h3 id="g5">5. 総合順位を見る</h3>
+      <p>点数を入力した瞬間に反映されます。</p>
+      <img src="docs/images/07-standings.webp" alt="総合順位" loading="lazy" width="390" height="844">
+      <table class="guide-table">
+        <tr><th>+38 1着</th><td>その回戦のポイントと着順</td></tr>
+        <tr><th>…</th><td>その卓はまだ入力の途中</td></tr>
+        <tr><th>—</th><td>まだ対局していない</td></tr>
+        <tr><th>抜</th><td>抜け番</td></tr>
+      </table>
+      <p>右上の<strong>「詳細表示」</strong>で、素点合計・平均着順・着順分布・チップ・賞金も表示されます。</p>
+      <img src="docs/images/08-standings-detail.webp" alt="総合順位（詳細表示）" loading="lazy" width="390" height="844">
+      <p class="guide-note">同点は <strong>素点合計 → 1位回数 → 平均着順</strong> の順で判定します。「CSVで書き出す」も使えます。</p>
+
+      <h3 id="g6">6. 2回戦以降を進める</h3>
+      <p>流れは1回戦と同じです。上の <code>2回戦</code> をタップ →「卓組みを作成」→ 点数入力。方式は自動で選ばれます。</p>
+      <img src="docs/images/09-match-round3.webp" alt="3回戦の卓組み" loading="lazy" width="390" height="844">
+      <p>回戦タブの ✅ は入力完了、✏️ は入力途中を表します。</p>
+
+      <h3 id="g7">7. ルールを変える</h3>
+      <p><strong>設定</strong>タブで変更でき、すべての計算がやり直されます。</p>
+      <img src="docs/images/10-settings-rules.webp" alt="計算ルールの設定" loading="lazy" width="390" height="844">
+      <table class="guide-table">
+        <tr><th>ウマ</th><td>+20 / +10 / −10 / −20</td></tr>
+        <tr><th>素点を加算</th><td>オフにすると順位点のみの計算に</td></tr>
+        <tr><th>オカあり</th><td>初期はオフ。オンにすると1位に +20pt</td></tr>
+        <tr><th>配給原点 / 返し点</th><td>25,000 / 30,000</td></tr>
+        <tr><th>端数補正</th><td>丸め誤差を1位で吸収</td></tr>
+      </table>
+      <p class="guide-note">一番下の<strong>計算例（プレビュー）</strong>で、変更した結果がその場で確認できます。</p>
+
+      <h3 id="g8">8. 困ったときは</h3>
+      <dl class="guide-faq">
+        <dt>入力した点数は消えませんか？</dt>
+        <dd>消えません。同じ端末の同じブラウザなら閉じても残ります。設定タブの「バックアップ書き出し」でファイル保存もできます。</dd>
+        <dt>別のスマホでも同じ順位を見たい</dt>
+        <dd>データは端末ごとの保存なので自動では共有されません。「バックアップ書き出し」でファイルを渡し、相手側で「読み込み」してください。</dd>
+        <dt>点数を間違えて入力した</dt>
+        <dd>その欄を書き直すだけです。「確定する」でロック中なら、もう一度押して解除してから修正します。</dd>
+        <dt>合計が100,000点にならない</dt>
+        <dd>差分が赤字で出ます。そのままでも計算はできますが、入力ミスの可能性が高いので確認してください。</dd>
+        <dt>最初からやり直したい</dt>
+        <dd>設定タブ →「対局結果をリセット」。プレイヤーは残り、対局結果とチップだけ消えます。</dd>
+        <dt>抜け番の人は有利になりませんか？</dt>
+        <dd>初期設定（オカなし）では1卓の合計が −20pt になるため、<strong>抜け番1回につきおよそ +5pt 有利</strong>になります。
+          気になる場合は設定の<strong>「オカあり」をオン</strong>にすると1卓の合計が ±0 になり、有利不利がなくなります。</dd>
+      </dl>
+
+      <p class="guide-note" style="margin-bottom:0">このガイドはいつでもヘッダーの「使い方」から開けます。</p>
+    </div>
+  </div>
 
   <div id="toast" class="toast" hidden></div>
 

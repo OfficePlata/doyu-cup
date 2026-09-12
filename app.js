@@ -1248,6 +1248,9 @@ function renderSettings() {
     el('div', { class: 'card-head' }, el('span', {}, 'データ')),
     el('div', { class: 'card-body' },
       el('p', { class: 'hint', style: 'margin-bottom:10px' }, '入力内容はこの端末のブラウザに自動保存されます。'),
+      el('div', { class: 'row', style: 'margin-bottom:10px' },
+        el('button', { class: 'btn small', onclick: openGuide }, '📖 使い方を見る')
+      ),
       el('div', { class: 'row' },
         el('button', {
           class: 'btn small',
@@ -1361,11 +1364,37 @@ function renderAll() {
   renderSettings();
 }
 
+/* ---- 使い方ガイド ---- */
+
+function openGuide() {
+  const guide = $('#guide');
+  if (!guide) return;
+  guide.hidden = false;
+  document.body.classList.add('guide-open');
+  guide.querySelector('.guide-body').scrollTop = 0;
+}
+
+function closeGuide() {
+  const guide = $('#guide');
+  if (!guide) return;
+  guide.hidden = true;
+  document.body.classList.remove('guide-open');
+}
+
 function init() {
   state = load();
   $$('#tabs .tab').forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
+
+  const openBtn = $('#guide-open');
+  if (openBtn) openBtn.addEventListener('click', openGuide);
+  const closeBtn = $('#guide-close');
+  if (closeBtn) closeBtn.addEventListener('click', closeGuide);
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') closeGuide();
+  });
+
   renderAll();
 }
 

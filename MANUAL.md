@@ -1,5 +1,8 @@
 # 麻雀大会 スコア計算アプリ　使い方マニュアル
 
+> **アプリ内でも読めます。** 画面右上の「？使い方」ボタンから、同じ内容をいつでも開けます。
+> 会場ではそちらのほうが手軽です。
+
 スマホのブラウザだけで、卓組みから順位計算まで完結します。アプリのインストールは不要です。
 
 - **計算ルール**：素点（(最終点 − 30,000) ÷ 1000）＋ ウマ（1位 +20 / 2位 +10 / 3位 −10 / 4位 −20）
@@ -22,7 +25,7 @@
 
 ## 1. はじめに（画面の見方）
 
-<img src="docs/images/01-start.png" width="320" alt="起動直後の画面">
+<img src="docs/images/01-start.webp" width="320" alt="起動直後の画面">
 
 画面の上に4つのタブがあります。基本はこの順に使います。
 
@@ -47,7 +50,7 @@
 
 **プレイヤー**タブを開き、**「参加メンバー27人を読み込む」**を押すだけで名簿が入ります。
 
-<img src="docs/images/02-members-loaded.png" width="320" alt="参加メンバーの読み込み">
+<img src="docs/images/02-members-loaded.webp" width="320" alt="参加メンバーの読み込み">
 
 読み込んだあとは**自由に編集できます**。
 
@@ -56,7 +59,7 @@
 - **削除**：右の「削除」ボタン
 - **チップの増減**：`−` `＋` ボタン（役満ボーナスやチョンボの記録に使います）
 
-<img src="docs/images/03-players-list.png" width="320" alt="登録済みプレイヤー一覧">
+<img src="docs/images/03-players-list.webp" width="320" alt="登録済みプレイヤー一覧">
 
 当日の欠席・飛び入りがあっても、その場で直せます。
 
@@ -80,7 +83,7 @@
 
 **対局**タブを開きます。
 
-<img src="docs/images/04-match-empty.png" width="320" alt="卓組み作成前">
+<img src="docs/images/04-match-empty.webp" width="320" alt="卓組み作成前">
 
 上の `1回戦` `2回戦` … で回戦を切り替えます。
 **「卓組みを作成」**を押すだけで、その回戦にふさわしい方式で自動的に卓が決まります。
@@ -91,7 +94,7 @@
 | 2回戦 | **順位卓**（1回戦の1位同士・2位同士…） |
 | 3回戦以降 | **総合順位順**（1〜4位 / 5〜8位 …） |
 
-<img src="docs/images/05-tables-made.png" width="320" alt="卓組み作成後">
+<img src="docs/images/05-tables-made.webp" width="320" alt="卓組み作成後">
 
 席は East から順に **東・南・西・北** で表示されます。
 
@@ -108,7 +111,7 @@
 
 終局後の持ち点を、そのまま入力します（例：`42300`）。
 
-<img src="docs/images/06-score-entry.png" width="320" alt="点数入力">
+<img src="docs/images/06-score-entry.webp" width="320" alt="点数入力">
 
 4人ぶん揃うと、**着順とポイントが自動で計算**されます。
 
@@ -126,7 +129,7 @@
 
 **総合順位**タブで、その時点の順位が見られます。点数を入力した瞬間に反映されます。
 
-<img src="docs/images/07-standings.png" width="320" alt="総合順位（簡易表示）">
+<img src="docs/images/07-standings.webp" width="320" alt="総合順位（簡易表示）">
 
 各回戦の欄の見方：
 
@@ -139,7 +142,7 @@
 
 右上の**「詳細表示」**を押すと、素点合計・平均着順・着順分布・チップ・賞金も表示されます。
 
-<img src="docs/images/08-standings-detail.png" width="320" alt="総合順位（詳細表示）">
+<img src="docs/images/08-standings-detail.webp" width="320" alt="総合順位（詳細表示）">
 
 > 同点の場合は **素点合計 → 1位回数 → 平均着順** の順で上位を判定します。
 > 「CSVで書き出す」で、表計算ソフトに取り込める形式で保存できます。
@@ -154,7 +157,7 @@
 2. 「卓組みを作成」を押す（方式は自動で**順位卓**が選ばれています）
 3. 点数を入力
 
-<img src="docs/images/09-match-round3.png" width="320" alt="3回戦の卓組み">
+<img src="docs/images/09-match-round3.webp" width="320" alt="3回戦の卓組み">
 
 3回戦以降は**総合順位順**（1〜4位が同卓、5〜8位が同卓…）で自動的に組まれます。
 回戦タブの ✅ は入力完了、✏️ は入力途中を表します。
@@ -165,7 +168,7 @@
 
 **設定**タブで、大会のルールをその場で変更できます。変更するとすべての計算がやり直されます。
 
-<img src="docs/images/10-settings-rules.png" width="320" alt="計算ルールの設定">
+<img src="docs/images/10-settings-rules.webp" width="320" alt="計算ルールの設定">
 
 | 項目 | 初期値 | 説明 |
 | --- | --- | --- |
