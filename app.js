@@ -73,39 +73,50 @@ function save() {
 }
 
 /* --------------------------------------------------------------------------
-   デモデータ（プレビュー用）
-   参加者名は仮のものです。実際のメンバーに差し替えて使ってください。
+   参加メンバー / デモデータ
+   メンバーはここを書き換えるか、アプリの「プレイヤー」タブから自由に
+   追加・変更・削除できます。
    -------------------------------------------------------------------------- */
 
-const DEMO_PLAYERS = [
-  '佐藤', '鈴木', '高橋', '田中',
-  '伊藤', '渡辺', '山本', '中村',
-  '小林', '加藤', '吉田', '山田',
-  '佐々木', '山口', '松本', '井上',
+const TOURNAMENT_MEMBERS = [
+  '小林 久倫', '上之正信', '内田敬之',
+  'まさつぐ', '有川 裕幸', '田原 謙一',
+  '岩重 雄也', '加藤 佳太', '永田 ひろき',
+  '永田 亮介', '室屋 祐介', '宮林',
+  '重留 巧治', '諸町 俊貴', '前畑 舞',
+  '田中 辰', '盛山', '久保 昭博',
+  '川原 結樹', '麦生田', '福田 正寛',
+  '藤崎 祥昭', 'こまがた', '笹原 彰朗',
+  '山川 忠雄', '山﨑 徹', '福ヶ迫 公彰',
 ];
 
-// 1卓ぶんの持ち点（合計100,000点）。デモを毎回同じ見た目にするため固定値を使う。
+// 1卓ぶんの持ち点（どの卓も合計100,000点）。デモの見た目を安定させるため固定値を使う。
 const DEMO_SCORES = {
   round1: [
     [42300, 28900, 21800, 7000],
     [35600, 31200, 19700, 13500],
     [48100, 25400, 16800, 9700],
     [38900, 27300, 22400, 11400],
+    [44200, 26600, 18900, 10300],
+    [33700, 32100, 20500, 13700],
   ],
   round2: [
     [51200, 26800, 13500, 8500],
     [33400, 30100, 24200, 12300],
     [45700, 24900, 18600, 10800],
     [39200, 28600, 21100, 11100],
+    [36500, 29800, 22700, 11000],
+    [47300, 25100, 17200, 10400],
   ],
   // 3回戦は途中まで入力した状態にして、リアルタイム集計の様子を見せる
   round3: [
     [44500, 27200, 17300, 11000],
     [36800, 29400, 20500, 13300],
+    [41600, 28200, 19400, 10800],
   ],
 };
 
-const DEMO_CHIPS = { 2: 3, 5: -1, 9: 1 }; // プレイヤーの並び順 → チップ枚数
+const DEMO_CHIPS = { 2: 3, 5: -1, 9: 1, 14: 2 }; // 並び順 → チップ枚数
 
 /* --------------------------------------------------------------------------
    Utilities
@@ -470,6 +481,27 @@ function compareTotal(a, b, standings) {
 }
 
 /**
+ * 参加メンバーを一括登録する（点数は入れない、本番用）。
+ * 登録後は「プレイヤー」タブで自由に追加・変更・削除できる。
+ */
+function loadMembers() {
+  if (state.players.length &&
+      !confirm('現在の登録内容と対局結果をすべて消して、参加メンバーを読み込みます。よろしいですか？')) {
+    return;
+  }
+  const settings = state.settings;
+  state = defaultState();
+  state.settings = settings;
+  state.players = TOURNAMENT_MEMBERS.map(name => ({ id: uid(), name, chips: 0 }));
+  currentRound = 0;
+  swapSel = null;
+  save();
+  renderAll();
+  switchView('players');
+  toast(`${state.players.length}人を登録しました`);
+}
+
+/**
  * プレビュー用のデモデータを読み込む。
  * 1〜2回戦を確定させ、3回戦を途中まで入力した「大会の最中」の状態を作る。
  */
@@ -481,16 +513,19 @@ function loadDemoData() {
 
   state = defaultState();
   state.settings.title = '第3回 マイマイカップ（デモ）';
-  state.players = DEMO_PLAYERS.map(name => ({ id: uid(), name, chips: 0 }));
+  state.players = TOURNAMENT_MEMBERS.map(name => ({ id: uid(), name, chips: 0 }));
   for (const [idx, chips] of Object.entries(DEMO_CHIPS)) {
     if (state.players[idx]) state.players[idx].chips = chips;
   }
 
-  // 1回戦は登録順どおりに着席させる（デモなので抽選せず毎回同じ並びにする）
+  // 1回戦は登録順どおりに着席させる（デモなので抽選せず毎回同じ並びにする）。
+  // 4の倍数に満たないぶんは、末尾の人を抜け番にする。
+  const ids = state.players.map(p => p.id);
+  const seatedCount = Math.floor(ids.length / SEATS) * SEATS;
   const round1 = ensureRound(0);
   round1.method = 'random';
-  round1.byes = [];
-  round1.tables = chunk(state.players.map(p => p.id), SEATS).map((seats, i) => ({
+  round1.byes = ids.slice(seatedCount);
+  round1.tables = chunk(ids.slice(0, seatedCount), SEATS).map((seats, i) => ({
     id: uid(),
     no: i + 1,
     seats,
@@ -530,8 +565,9 @@ function renderMatch() {
       el('div', { class: 'empty' },
         el('div', { text: 'まずはプレイヤーを登録してください' }),
         el('div', { class: 'row', style: 'margin-top:12px;justify-content:center' },
-          el('button', { class: 'btn primary', onclick: () => switchView('players') }, 'プレイヤー登録へ'),
-          el('button', { class: 'btn', onclick: loadDemoData }, 'デモデータを見る')
+          el('button', { class: 'btn primary', onclick: loadMembers }, '参加メンバーを登録'),
+          el('button', { class: 'btn', onclick: () => switchView('players') }, '自分で入力する'),
+          el('button', { class: 'btn ghost', onclick: loadDemoData }, 'デモを見る')
         )
       )
     ));
@@ -1030,9 +1066,12 @@ function renderPlayers() {
         ? el('p', { class: 'hint' }, `⚠️ 現在${state.players.length}人です。4の倍数でない分は自動で抜け番になります。`)
         : null,
       el('div', { class: 'row', style: 'margin-top:10px' },
-        el('button', { class: 'btn small', onclick: loadDemoData }, 'デモデータを読み込む'),
-        el('span', { class: 'hint', style: 'margin:0' }, '16人ぶんの対局例を一括で読み込みます')
-      )
+        el('button', { class: 'btn small', onclick: loadMembers },
+          `参加メンバー${TOURNAMENT_MEMBERS.length}人を読み込む`),
+        el('button', { class: 'btn small ghost', onclick: loadDemoData }, 'デモデータを読み込む')
+      ),
+      el('p', { class: 'hint' },
+        '「参加メンバー」は名簿だけを登録します。読み込んだあとで自由に追加・変更・削除できます。')
     )
   ));
 
