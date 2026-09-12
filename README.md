@@ -99,6 +99,41 @@ python3 -m http.server 8000
 
 ---
 
+## Cloudflare Pages へのデプロイ
+
+静的ファイルだけなのでビルド不要です。方法は2つあります。
+
+### 方法A: Cloudflare のダッシュボードで Git 連携（おすすめ・シークレット不要）
+
+1. [Cloudflare ダッシュボード](https://dash.cloudflare.com/) → **Workers & Pages** → **作成** → **Pages** → **Git に接続**
+2. リポジトリ `OfficePlata/doyu-cup` を選択
+3. ビルド設定を次のようにする
+
+   | 項目 | 値 |
+   | --- | --- |
+   | フレームワークプリセット | なし（None） |
+   | ビルドコマンド | **空欄のまま** |
+   | ビルド出力ディレクトリ | `/`（ルート） |
+   | 本番ブランチ | `claude/mahjong-scoring-app-qqrx5r` |
+
+4. **保存してデプロイ** → 数十秒で `https://doyu-cup.pages.dev` が発行されます
+
+以降はプッシュするたびに自動で再デプロイされます。
+
+### 方法B: GitHub Actions で自動デプロイ
+
+`.github/workflows/deploy-cloudflare.yml` を用意してあります。
+リポジトリの **Settings → Secrets and variables → Actions** に次の2つを登録すると、
+プッシュのたびに自動デプロイされます（未登録のうちは何もせずスキップします）。
+
+| シークレット名 | 取得場所 |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare → マイプロフィール → APIトークン → **Cloudflare Pages: Edit** 権限で作成 |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare ダッシュボードのURL `dash.cloudflare.com/<ここがアカウントID>` |
+
+事前に Pages プロジェクト名 `doyu-cup` を作成しておいてください
+（別名にする場合はワークフロー内の `--project-name` を書き換えます）。
+
 ## 構成
 
 ```
