@@ -34,6 +34,8 @@ let state = null;
 let swapSel = null;
 let currentView = 'match';
 let currentRound = 0; // 0-based
+/** 総合順位表で詳細列（素点計・平均着順など）を出すか。狭い画面では既定で隠す。 */
+let showStandingsDetail = typeof window !== 'undefined' && window.innerWidth >= 700;
 
 function defaultState() {
   return {
@@ -649,7 +651,6 @@ function renderTableCard(round, table) {
     ));
   });
 
-  const diff = calc.sum - calc.expected;
   const sumRow = el('div', { class: 'sum-row', dataset: { sumFor: table.id } }, ...sumRowContent(calc));
 
   const actions = el('div', { class: 'row', style: 'margin-top:10px' },
@@ -671,9 +672,8 @@ function renderTableCard(round, table) {
   return el('div', { class: 'card' },
     el('div', { class: 'card-head' },
       el('span', {}, `第${table.no}卓`),
-      calc.complete
-        ? el('span', { class: diff === 0 ? 'pill ok' : 'pill warn' }, diff === 0 ? '入力完了' : '点数不一致')
-        : el('span', { class: 'pill' }, `${calc.filledCount}/4 入力`)
+      el('span', { dataset: { statusFor: table.id }, class: statusPill(calc).class },
+        statusPill(calc).text)
     ),
     el('div', { class: 'card-body' },
       el('table', { class: 'seat-table' },
@@ -686,6 +686,15 @@ function renderTableCard(round, table) {
       actions
     )
   );
+}
+
+/** 卓の入力状況バッジ（見出しの右側） */
+function statusPill(calc) {
+  if (!calc.complete) return { class: 'pill', text: `${calc.filledCount}/4 入力` };
+  const diff = calc.sum - calc.expected;
+  return diff === 0
+    ? { class: 'pill ok', text: '入力完了' }
+    : { class: 'pill warn', text: '点数不一致' };
 }
 
 function sumRowContent(calc) {
@@ -772,6 +781,12 @@ function refreshComputed() {
         sumCell.textContent = '';
         sumRowContent(calc).forEach(n => sumCell.appendChild(n));
       }
+      const statusCell = $(`[data-status-for="${table.id}"]`);
+      if (statusCell) {
+        const pill = statusPill(calc);
+        statusCell.className = pill.class;
+        statusCell.textContent = pill.text;
+      }
     }
   }
   // 総合順位はリアルタイム反映
@@ -854,11 +869,13 @@ function renderStandings() {
     el('th', { class: 'total-col' }, '合計pt')
   );
   for (let i = 0; i < roundCount; i++) head.appendChild(el('th', {}, `${i + 1}回戦`));
-  head.appendChild(el('th', {}, '素点計'));
-  head.appendChild(el('th', {}, '平均着順'));
-  head.appendChild(el('th', {}, '着順分布'));
-  if (st.chipValue > 0) head.appendChild(el('th', {}, 'チップ'));
-  head.appendChild(el('th', {}, '賞金'));
+  if (showStandingsDetail) {
+    head.appendChild(el('th', {}, '素点計'));
+    head.appendChild(el('th', {}, '平均着順'));
+    head.appendChild(el('th', {}, '着順分布'));
+    if (st.chipValue > 0) head.appendChild(el('th', {}, 'チップ'));
+    head.appendChild(el('th', {}, '賞金'));
+  }
 
   const body = el('tbody');
   list.forEach(entry => {
@@ -875,23 +892,29 @@ function renderStandings() {
       tr.appendChild(el('td', { class: `num ${ptClass(rec.pt)}` },
         fmtPt(rec.pt), el('span', { class: 'sub' }, `${rec.rank + 1}着`)));
     }
-    tr.appendChild(el('td', { class: 'num' }, entry.played ? fmtScore(entry.totalScore) : '—'));
-    tr.appendChild(el('td', { class: 'num' }, entry.played ? avgRank(entry).toFixed(2) : '—'));
-    tr.appendChild(el('td', { class: 'num' }, entry.rankCounts.join('-')));
-    if (st.chipValue > 0) {
-      const chips = entry.player.chips || 0;
-      tr.appendChild(el('td', { class: `num ${ptClass(chips)}` },
-        `${chips > 0 ? '+' : ''}${chips}`, el('span', { class: 'sub' }, fmtYen(chips * st.chipValue))));
+    if (showStandingsDetail) {
+      tr.appendChild(el('td', { class: 'num' }, entry.played ? fmtScore(entry.totalScore) : '—'));
+      tr.appendChild(el('td', { class: 'num' }, entry.played ? avgRank(entry).toFixed(2) : '—'));
+      tr.appendChild(el('td', { class: 'num' }, entry.rankCounts.join('-')));
+      if (st.chipValue > 0) {
+        const chips = entry.player.chips || 0;
+        tr.appendChild(el('td', { class: `num ${ptClass(chips)}` },
+          `${chips > 0 ? '+' : ''}${chips}`, el('span', { class: 'sub' }, fmtYen(chips * st.chipValue))));
+      }
+      const prize = st.prizes[entry.rank - 1];
+      tr.appendChild(el('td', { class: 'num' }, prize ? fmtYen(prize) : '—'));
     }
-    const prize = st.prizes[entry.rank - 1];
-    tr.appendChild(el('td', { class: 'num' }, prize ? fmtYen(prize) : '—'));
     body.appendChild(tr);
   });
 
   root.appendChild(el('div', { class: 'card' },
     el('div', { class: 'card-head' },
-      el('span', {}, '総合順位（リアルタイム）'),
-      el('span', { class: 'pill' }, `${completedRounds()} / ${st.roundCount} 回戦終了`)
+      el('span', {}, '総合順位'),
+      el('span', { class: 'pill' }, `${completedRounds()} / ${st.roundCount} 回戦終了`),
+      el('button', {
+        class: 'btn small ghost',
+        onclick: () => { showStandingsDetail = !showStandingsDetail; renderStandings(); },
+      }, showStandingsDetail ? '簡易表示' : '詳細表示')
     ),
     el('div', { class: 'card-body' },
       el('div', { class: 'standings-wrap' },

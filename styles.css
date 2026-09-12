@@ -105,9 +105,21 @@ main { padding: 12px; max-width: 900px; margin: 0 auto; }
 .grow { flex: 1 1 auto; min-width: 0; }
 .spacer { flex: 1 1 auto; }
 
-button, select, input {
+button, select, input, textarea {
   font: inherit;
   color: inherit;
+}
+
+/* iOS Safari はフォントが16px未満の入力欄にフォーカスすると自動でズームしてしまう。
+   対局中に何度もズームされると使いづらいので、入力系は必ず16px以上にする。 */
+input, select, textarea {
+  font-size: 16px;
+}
+
+/* ダブルタップによるズーム待ちをなくし、タップ時の青いハイライトを消す */
+button, .tab, .round-chip, .pname, label {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .btn {
   appearance: none;
@@ -187,8 +199,14 @@ input:focus, select:focus { outline: 2px solid var(--green-500); outline-offset:
 .seat-table th { font-size: 11px; color: var(--muted); font-weight: 700; }
 .seat-table th:nth-child(1), .seat-table td:nth-child(1) { width: 30px; text-align: center; }
 .seat-table th:nth-child(2), .seat-table td:nth-child(2) { text-align: left; }
-.seat-table td.score-cell { width: 96px; }
-.seat-table td.score-cell input { text-align: right; padding: 6px 8px; }
+.seat-table td.score-cell { width: 104px; }
+.seat-table td.score-cell input {
+  text-align: right;
+  padding: 9px 8px;
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
 .seat-table td.rank-cell { width: 38px; text-align: center; }
 .seat-table td.pt-cell { width: 64px; font-weight: 700; }
 .seat-table tr.is-selected { background: #fff6d8; }
@@ -204,8 +222,9 @@ input:focus, select:focus { outline: 2px solid var(--green-500); outline-offset:
   text-align: center;
 }
 .pname {
-  background: none; border: 0; padding: 2px 4px; margin: -2px -4px;
+  background: none; border: 0; padding: 10px 6px; margin: -10px -6px;
   font-weight: 600; text-align: left; cursor: pointer; border-radius: 6px;
+  min-height: 44px;
   max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .pname:hover { background: #f0f4f1; }
@@ -222,7 +241,15 @@ input:focus, select:focus { outline: 2px solid var(--green-500); outline-offset:
 
 /* ---------- standings ---------- */
 .standings-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.standings { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.standings {
+  /* width:100% だと収まらないときに最後の列だけ潰れて文字が切れるため、
+     自然幅で組んでコンテナ側で横スクロールさせる */
+  width: auto;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  white-space: nowrap;
+}
 .standings th, .standings td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; }
 .standings thead th { position: sticky; top: 0; background: var(--green-050); color: var(--green-900); font-size: 11px; z-index: 1; }
 .standings th.name-col, .standings td.name-col { text-align: left; position: sticky; left: 0; background: var(--card); z-index: 2; }
@@ -258,9 +285,39 @@ input:focus, select:focus { outline: 2px solid var(--green-500); outline-offset:
   z-index: 100; max-width: 90vw; text-align: center;
 }
 
+/* 指で操作する端末では、誤タップしないようボタンを大きくする */
+@media (pointer: coarse) {
+  .btn { min-height: 44px; padding: 10px 14px; }
+  .btn.small { min-height: 40px; padding: 8px 12px; font-size: 14px; }
+  .round-chip { min-height: 44px; padding: 10px 16px; }
+  .tab { padding: 14px 4px; }
+  .chip-ctl .btn.small { min-width: 44px; }
+  .player-row input[type="text"] { min-height: 44px; }
+}
+
+/* 総合順位表を狭い画面に収める（横スクロールなしで全列見えるようにする） */
+@media (max-width: 420px) {
+  .standings th, .standings td { padding: 7px 4px; }
+  .standings td.rk-col, .standings th.rk-col { width: 24px; }
+  .standings td.name-col, .standings th.name-col { left: 24px; }
+  .standings .sub { font-size: 9px; margin-left: 1px; }
+}
+
 @media (max-width: 380px) {
   body { font-size: 14px; }
-  .seat-table td.score-cell { width: 86px; }
+  main { padding: 10px; }
+  .card-body { padding: 10px; }
+  .seat-table td.score-cell { width: 96px; }
+  .seat-table th, .seat-table td { padding: 6px 3px; }
+}
+
+/* ホームバー（セーフエリア）にボタンが隠れないようにする */
+body {
+  padding-bottom: calc(56px + env(safe-area-inset-bottom));
+}
+main {
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
 }
 
 @media (prefers-color-scheme: dark) {
