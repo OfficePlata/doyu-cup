@@ -1,0 +1,10 @@
+{
+  // 麻雀大会スコア計算アプリ — ビルド不要の静的サイトを Workers で配信する設定。
+  // main（Workerスクリプト）を持たない「静的アセットのみ」の Worker として動作する。
+  "name": "doyu-cup",
+  "compatibility_date": "2026-09-12",
+  "assets": {
+    // 公開するファイルの置き場所。除外したいものは .assetsignore に記載する。
+    "directory": "./"
+  }
+}

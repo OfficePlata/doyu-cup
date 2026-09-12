@@ -99,47 +99,68 @@ python3 -m http.server 8000
 
 ---
 
-## Cloudflare Pages へのデプロイ
+## Cloudflare Workers でのデプロイ
 
-静的ファイルだけなのでビルド不要です。方法は2つあります。
+`wrangler.jsonc` を同梱しているので、**ビルド設定なしでそのままデプロイできます**。
+Worker スクリプトを持たない「静的アセットのみ」の Worker として公開されます。
 
-### 方法A: Cloudflare のダッシュボードで Git 連携（おすすめ・シークレット不要）
+```jsonc
+// wrangler.jsonc
+{
+  "name": "doyu-cup",
+  "compatibility_date": "2026-09-12",
+  "assets": { "directory": "./" }
+}
+```
 
-1. [Cloudflare ダッシュボード](https://dash.cloudflare.com/) → **Workers & Pages** → **作成** → **Pages** → **Git に接続**
-2. リポジトリ `OfficePlata/doyu-cup` を選択
-3. ビルド設定を次のようにする
+### 公開されるファイル
+
+公開対象は `.assetsignore` で絞り込んでいて、実際に配信されるのは次の3つだけです。
+
+```
+index.html / styles.css / app.js
+```
+
+`README.md`・`.github/`・`wrangler.jsonc`・`node_modules/` などは除外されます。
+**ルート直下に置いたファイルは既定で公開対象になる**ので、大会データのバックアップJSONなど
+公開したくないファイルをリポジトリに置く場合は、忘れずに `.assetsignore` へ追記してください。
+
+### ダッシュボードから Git 連携で公開する
+
+1. [Cloudflare ダッシュボード](https://dash.cloudflare.com/) → **Workers & Pages**
+2. Worker `doyu-cup` → **Settings** → **Build** → リポジトリ `OfficePlata/doyu-cup` を接続
+3. ビルド設定
 
    | 項目 | 値 |
    | --- | --- |
-   | フレームワークプリセット | なし（None） |
    | ビルドコマンド | **空欄のまま** |
-   | ビルド出力ディレクトリ | `/`（ルート） |
-   | 本番ブランチ | `claude/mahjong-scoring-app-qqrx5r` |
+   | デプロイコマンド | `npx wrangler deploy`（既定のまま） |
+   | ブランチ | `claude/mahjong-scoring-app-qqrx5r` |
 
-4. **保存してデプロイ** → 数十秒で `https://doyu-cup.pages.dev` が発行されます
+以降はプッシュのたびに自動デプロイされ、`https://doyu-cup.<サブドメイン>.workers.dev` で公開されます。
 
-以降はプッシュするたびに自動で再デプロイされます。
+### 手元から手動でデプロイする
 
-### 方法B: GitHub Actions で自動デプロイ
+```bash
+npx wrangler login
+npx wrangler deploy
+```
 
-`.github/workflows/deploy-cloudflare.yml` を用意してあります。
-リポジトリの **Settings → Secrets and variables → Actions** に次の2つを登録すると、
-プッシュのたびに自動デプロイされます（未登録のうちは何もせずスキップします）。
+### GitHub Actions から（任意）
 
-| シークレット名 | 取得場所 |
-| --- | --- |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare → マイプロフィール → APIトークン → **Cloudflare Pages: Edit** 権限で作成 |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare ダッシュボードのURL `dash.cloudflare.com/<ここがアカウントID>` |
-
-事前に Pages プロジェクト名 `doyu-cup` を作成しておいてください
-（別名にする場合はワークフロー内の `--project-name` を書き換えます）。
+`.github/workflows/deploy-cloudflare.yml` を用意していますが、上記の Git 連携を使うなら不要です。
+二重デプロイを避けるため**手動実行専用**にしてあります。使う場合はリポジトリの
+**Settings → Secrets and variables → Actions** に `CLOUDFLARE_API_TOKEN` と
+`CLOUDFLARE_ACCOUNT_ID` を登録し、Actions タブから Run workflow を実行してください。
 
 ## 構成
 
 ```
-index.html    画面の骨組み
-styles.css    スタイル（モバイル優先・ダークモード対応）
-app.js        計算エンジン・卓組みロジック・描画（依存ライブラリなし）
+index.html       画面の骨組み
+styles.css       スタイル（モバイル優先・ダークモード対応）
+app.js           計算エンジン・卓組みロジック・描画（依存ライブラリなし）
+wrangler.jsonc   Cloudflare Workers の配信設定
+.assetsignore    公開対象から除外するファイル
 ```
 
 外部ライブラリやビルド工程はありません。オフラインでも動作します。

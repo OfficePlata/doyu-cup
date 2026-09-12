@@ -1,0 +1,9 @@
+# ここに書いたものは Cloudflare Workers の公開対象から除外される（.gitignore と同じ書式）
+.git
+.github
+.assetsignore
+wrangler.jsonc
+README.md
+node_modules
+package.json
+package-lock.json
