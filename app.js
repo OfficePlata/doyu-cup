@@ -18,9 +18,9 @@ const DEFAULT_SETTINGS = {
   returnPoints: 30000,  // 返し点
   uma: [20, 10, -10, -20],
   useRawScore: true,    // 素点をポイントに加算するか
-  useOka: true,         // オカ（返し点 - 配給原点）× 人数 を1位に加算
+  useOka: false,        // オカ（返し点 - 配給原点）× 人数 を1位に加算
   rounding: 'round',    // 'round'(四捨五入) | 'go'(五捨六入) | 'none'(小数第1位)
-  zeroSumAdjust: true,  // 端数処理で生じたズレを1位で吸収し、卓の合計を必ず0にする
+  zeroSumAdjust: true,  // 端数処理で生じた丸め誤差を1位で吸収する
   chipValue: 300,       // チップ1枚あたりの金額（円）
   prizes: [30000, 18000, 10000, 7000, 5000],
 };
@@ -214,21 +214,27 @@ function computeTable(table) {
   if (!complete) return { complete, sum, expected, filledCount, results };
 
   const order = [0, 1, 2, 3].sort((a, b) => (scores[b] - scores[a]) || (a - b));
+  let exactTotal = 0;   // 端数処理をかける前の、卓全体の理論値
   order.forEach((seatIdx, rank) => {
     let base = 0;
     if (st.useRawScore) {
+      // 素点pt = (最終点 − 返し点) ÷ 1000   例) 33,000点 → +3 ／ 25,000点 → −5
       base = (scores[seatIdx] - st.returnPoints) / 1000;
       if (st.useOka && rank === 0) base += ((st.returnPoints - st.startPoints) * SEATS) / 1000;
+      exactTotal += base;
       base = applyRounding(base, st.rounding);
     }
     const uma = Number(st.uma[rank]) || 0;
+    exactTotal += uma;
     results[seatIdx] = { rank, base, uma, pt: base + uma };
   });
 
-  // 端数処理でわずかにズレることがあるため、1位で吸収して卓の合計を0にする。
-  // 点数の合計が正しくない（入力ミスの）ときは、ミスを隠さないよう補正しない。
-  if (st.useRawScore && st.zeroSumAdjust && sum === expected) {
-    const diff = results.reduce((a, r) => a + r.pt, 0);
+  // 端数処理で生じた丸め誤差だけを1位に寄せ、卓の合計を理論値どおりにそろえる。
+  // 「合計0」に合わせるのではないので、オカなし（合計 −20 など）の設定でも
+  // 1位に余分なポイントが入らない。
+  if (st.useRawScore && st.zeroSumAdjust) {
+    const rounded = results.reduce((a, r) => a + r.pt, 0);
+    const diff = Math.round((rounded - exactTotal) * 10) / 10;
     if (Math.abs(diff) > 1e-9) {
       const topSeat = order[0];
       results[topSeat].base = Math.round((results[topSeat].base - diff) * 10) / 10;
@@ -236,7 +242,7 @@ function computeTable(table) {
     }
   }
 
-  return { complete, sum, expected, filledCount, results };
+  return { complete, sum, expected, exactTotal, filledCount, results };
 }
 
 /**
@@ -303,10 +309,11 @@ function computeStandings() {
     a.player.name.localeCompare(b.player.name, 'ja')
   );
 
-  // 同点は同順位表示
+  // 同点は同順位表示（order は画面に並ぶ順そのもの）
   let lastKey = null;
   let lastRank = 0;
   list.forEach((entry, i) => {
+    entry.order = i;
     const key = entry.totalPt.toFixed(4) + '/' + entry.totalScore;
     if (key === lastKey) {
       entry.rank = lastRank;
@@ -416,11 +423,12 @@ function sortByTotal(players, standings) {
 }
 
 function compareTotal(a, b, standings) {
+  // 同点で順位が並んだ場合も、順位表の表示順と卓組みがズレないよう order で比較する
   const ea = standings.get(a.id);
   const eb = standings.get(b.id);
-  const ra = ea ? ea.rank : 999;
-  const rb = eb ? eb.rank : 999;
-  if (ra !== rb) return ra - rb;
+  const oa = ea ? ea.order : Number.MAX_SAFE_INTEGER;
+  const ob = eb ? eb.order : Number.MAX_SAFE_INTEGER;
+  if (oa !== ob) return oa - ob;
   return a.name.localeCompare(b.name, 'ja');
 }
 
@@ -1034,7 +1042,7 @@ function renderSettings() {
           type: 'checkbox', checked: st.useOka, disabled: !st.useRawScore, style: 'width:auto',
           onchange: (ev) => commit('useOka', ev.target.checked),
         }),
-        el('span', {}, 'オカあり（1位が (返し点−配給原点)×4 を獲得）')
+        el('span', {}, 'オカあり（1位が (返し点−配給原点)×4 を獲得）※既定はオフ')
       ),
       el('div', { class: 'grid-2' },
         numField('配給原点', 'startPoints', { step: '1000' }),
@@ -1045,7 +1053,7 @@ function renderSettings() {
           type: 'checkbox', checked: st.zeroSumAdjust, disabled: !st.useRawScore, style: 'width:auto',
           onchange: (ev) => commit('zeroSumAdjust', ev.target.checked),
         }),
-        el('span', {}, 'ゼロサム補正（端数のズレを1位で吸収）')
+        el('span', {}, '端数補正（丸め誤差を1位で吸収）')
       ),
       el('div', { class: 'field' },
         el('label', {}, '端数処理'),
@@ -1141,7 +1149,11 @@ function renderFormulaPreview() {
       )),
       el('tbody', {}, ...rows)
     ),
-    el('p', { class: 'hint' }, `4人の合計: ${fmtPt(total)}${Math.abs(total) < 0.001 ? '（ゼロサム）' : ''}`)
+    el('p', { class: 'hint' },
+      `4人の合計: ${fmtPt(total)}`,
+      Math.abs(total) < 0.001
+        ? '（ゼロサム）'
+        : `（オカなしのため、1卓あたり合計 ${fmtPt(total)} になります）`)
   );
 }
 
