@@ -1,13 +1,19 @@
-# Cloudflare の Git 連携を使う場合、このワークフローは不要です。
-# 二重デプロイを避けるため、自動実行はせず手動実行（Actions タブの Run workflow）のみにしています。
+# Cloudflare Workers へのデプロイと、公開URLの疎通確認。
+# 手動実行（Actions タブの Run workflow）のみ。Cloudflare の Git 連携を使っている
+# 場合でも、疎通確認だけは資格情報なしで実行できる。
 name: Deploy to Cloudflare Workers (manual)
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_deploy:
+        description: 'デプロイせず疎通確認だけ行う'
+        type: boolean
+        default: false
 
 concurrency:
   group: cloudflare-deploy
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -17,24 +23,93 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check Cloudflare credentials
+      # ---------------------------------------------------------------
+      # デプロイ前の疎通確認（資格情報がなくても実行する）
+      # 開発環境からは Cloudflare に到達できないため、ここで外形監視の代わりをする
+      # ---------------------------------------------------------------
+      - name: 公開URLの疎通確認（デプロイ前）
+        run: |
+          echo "## デプロイ前の疎通確認" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          for host in www.doyu-cup.jp doyu-cup.jp; do
+            echo "--- $host ---" | tee -a "$GITHUB_STEP_SUMMARY"
+            getent hosts "$host" | tee -a "$GITHUB_STEP_SUMMARY" || echo "  DNS解決できず" | tee -a "$GITHUB_STEP_SUMMARY"
+            code=$(curl -sS -o /tmp/body.txt -D /tmp/head.txt \
+                    --max-time 25 --connect-timeout 10 \
+                    -w '%{http_code}|接続 %{time_connect}s|合計 %{time_total}s' \
+                    -L "https://$host/" 2>/tmp/err.txt) \
+              && echo "  HTTPS: $code" | tee -a "$GITHUB_STEP_SUMMARY" \
+              || echo "  HTTPS: 失敗 -> $(cat /tmp/err.txt)" | tee -a "$GITHUB_STEP_SUMMARY"
+            grep -iE '^(cf-ray|server|location|content-type):' /tmp/head.txt 2>/dev/null \
+              | sed 's/^/  /' | tee -a "$GITHUB_STEP_SUMMARY" || true
+            head -c 300 /tmp/body.txt 2>/dev/null | tr -d '\r' | sed 's/^/  | /' | tee -a "$GITHUB_STEP_SUMMARY" || true
+            echo "" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      # ---------------------------------------------------------------
+      # デプロイ
+      # ---------------------------------------------------------------
+      - name: 資格情報の確認
         id: check
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ -n "$CF_API_TOKEN" ] && [ -n "$CF_ACCOUNT_ID" ]; then
+          if [ "${{ inputs.skip_deploy }}" = "true" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "### デプロイはスキップ指定のため実行しません" >> "$GITHUB_STEP_SUMMARY"
+          elif [ -n "$CF_API_TOKEN" ] && [ -n "$CF_ACCOUNT_ID" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID が未設定のため、デプロイをスキップしました。"
+            {
+              echo "### ⚠️ デプロイをスキップしました"
+              echo "リポジトリの Settings → Secrets and variables → Actions に次を登録してください。"
+              echo "- \`CLOUDFLARE_API_TOKEN\`（未設定: $([ -z "$CF_API_TOKEN" ] && echo はい || echo いいえ)）"
+              echo "- \`CLOUDFLARE_ACCOUNT_ID\`（未設定: $([ -z "$CF_ACCOUNT_ID" ] && echo はい || echo いいえ)）"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      # 公開対象は wrangler.jsonc と .assetsignore が決める（index.html / styles.css / app.js のみ）
-      - name: Deploy
+      - name: トークンの有効性を確認
+        if: steps.check.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: whoami
+
+      # 公開対象は wrangler.jsonc と .assetsignore が決める。
+      # wrangler.jsonc の routes により www.doyu-cup.jp / doyu-cup.jp が
+      # カスタムドメインとして登録される。
+      - name: デプロイ
         if: steps.check.outputs.ready == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
+
+      # ---------------------------------------------------------------
+      # デプロイ後の疎通確認
+      # ---------------------------------------------------------------
+      - name: 公開URLの疎通確認（デプロイ後）
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          echo "## デプロイ後の疎通確認" >> "$GITHUB_STEP_SUMMARY"
+          echo "証明書の発行に時間がかかることがあるため、最大3分待ちます。" >> "$GITHUB_STEP_SUMMARY"
+          ok=0
+          for i in $(seq 1 12); do
+            code=$(curl -sS -o /tmp/b.txt --max-time 20 -w '%{http_code}' -L https://www.doyu-cup.jp/ 2>/dev/null || echo 000)
+            echo "  試行 $i: HTTP $code"
+            if [ "$code" = "200" ]; then ok=1; break; fi
+            sleep 15
+          done
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          if [ "$ok" = "1" ]; then
+            echo "✅ https://www.doyu-cup.jp/ が HTTP 200 で応答しました" | tee -a "$GITHUB_STEP_SUMMARY"
+            grep -o '<title>[^<]*</title>' /tmp/b.txt | tee -a "$GITHUB_STEP_SUMMARY" || true
+          else
+            echo "⚠️ まだ 200 になりません（証明書発行待ちの可能性があります）" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
