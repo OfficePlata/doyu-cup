@@ -47,6 +47,34 @@ jobs:
           done
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
+      # 公開中のファイルが最新コミットと一致しているかを確認する
+      - name: 公開中のバージョン確認
+        run: |
+          echo "## 公開中のバージョン" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          base=https://www.doyu-cup.jp
+          for f in index.html styles.css app.js mahjong.js study.js; do
+            live=$(curl -sS --max-time 20 "$base/$f" 2>/dev/null || true)
+            if [ -z "$live" ]; then
+              echo "  $f : 取得できず ⚠️" | tee -a "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+            lh=$(printf '%s' "$live" | sha256sum | cut -c1-12)
+            rh=$(sha256sum "$f" 2>/dev/null | cut -c1-12)
+            if [ "$lh" = "$rh" ]; then
+              echo "  $f : 最新と一致 ✅ ($lh)" | tee -a "$GITHUB_STEP_SUMMARY"
+            else
+              echo "  $f : 古い版が公開中 ⚠️ (公開 $lh / リポジトリ $rh)" | tee -a "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+          echo "" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "  --- 学習タブが含まれるか ---" | tee -a "$GITHUB_STEP_SUMMARY"
+          html=$(curl -sS --max-time 20 "$base/" || true)
+          for marker in 'data-view="study"' 'mahjong.js' 'study.js' 'guide-open'; do
+            printf '%s' "$html" | grep -q -- "$marker"               && echo "  $marker : あり ✅" | tee -a "$GITHUB_STEP_SUMMARY"               || echo "  $marker : なし ⚠️" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
       # ---------------------------------------------------------------
       # デプロイ
       # ---------------------------------------------------------------
