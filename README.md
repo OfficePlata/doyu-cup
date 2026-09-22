@@ -157,6 +157,28 @@ index.html / styles.css / app.js
 
 以降はプッシュのたびに自動デプロイされ、`https://doyu-cup.<サブドメイン>.workers.dev` で公開されます。
 
+### 独自ドメイン（www.doyu-cup.jp）
+
+`wrangler.jsonc` の `routes` に登録済みなので、デプロイすると Cloudflare 側の
+カスタムドメインと DNS レコードが自動で作られます。
+
+```jsonc
+"routes": [
+  { "pattern": "doyu-cup.jp",     "custom_domain": true },
+  { "pattern": "www.doyu-cup.jp", "custom_domain": true }
+]
+```
+
+ダッシュボードから設定する場合は、Worker `doyu-cup` → **Settings** →
+**Domains & Routes** → **Add** → **Custom domain** で同じ2つを登録します。
+
+つながらないときの確認順:
+
+1. Worker `doyu-cup` が**デプロイ済み**か（Deployments にバージョンがあるか）
+2. **Custom domain** に `www.doyu-cup.jp` が登録されているか
+3. SSL証明書が **Active** になっているか（発行まで数分〜かかることがあります）
+4. DNS の該当レコードが Worker 用のものに置き換わっているか
+
 ### 手元から手動でデプロイする
 
 ```bash
