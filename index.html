@@ -22,6 +22,7 @@
     <button class="tab" data-view="standings">総合順位</button>
     <button class="tab" data-view="players">プレイヤー</button>
     <button class="tab" data-view="settings">設定</button>
+    <button class="tab" data-view="study">学習</button>
   </nav>
 
   <main>
@@ -29,6 +30,7 @@
     <section id="view-standings" class="view"></section>
     <section id="view-players" class="view"></section>
     <section id="view-settings" class="view"></section>
+    <section id="view-study" class="view"></section>
   </main>
 
 
@@ -50,6 +52,7 @@
         <a href="#g6">6. 2回戦以降</a>
         <a href="#g7">7. ルールを変える</a>
         <a href="#g8">8. 困ったときは</a>
+        <a href="#g9">9. 用語集・聴牌トレ</a>
       </nav>
 
       <p class="guide-lead">
@@ -151,12 +154,29 @@
           気になる場合は設定の<strong>「オカあり」をオン</strong>にすると1卓の合計が ±0 になり、有利不利がなくなります。</dd>
       </dl>
 
+      <h3 id="g9">9. 用語集・聴牌トレーニング</h3>
+      <p><strong>学習</strong>タブには、初めての方向けの2つのページがあります。大会前の予習にも使えます。</p>
+
+      <p><strong>用語集</strong> … 大会規定の言葉（ウマ・素点・アリアリ・チョンボなど）から役の名前まで58語。
+        待ちの形や役は<strong>牌の図つき</strong>で、アガリ牌も並べて表示されます。上の検索欄で絞り込めます。</p>
+      <img src="docs/images/11-glossary.webp" alt="用語集の待ちの形" loading="lazy" width="390" height="844">
+
+      <p><strong>聴牌トレーニング</strong> … 13枚の手牌を見て、アガリ牌をすべて選ぶ練習です。
+        入門・中級・上級の3段階、全18問。</p>
+      <img src="docs/images/12-tenpai.webp" alt="聴牌トレーニングの出題" loading="lazy" width="390" height="844">
+
+      <p>答え合わせをすると、正解の牌と形の名前、間違えた場合は「見落とし」と「余分」が表示されます。</p>
+      <img src="docs/images/13-tenpai-result.webp" alt="聴牌トレーニングの結果" loading="lazy" width="390" height="844">
+      <p class="guide-note">答えはアプリが毎回計算して出しています。九蓮宝燈の9面待ちや国士無双の13面待ちも正しく判定します。</p>
+
       <p class="guide-note" style="margin-bottom:0">このガイドはいつでもヘッダーの「使い方」から開けます。</p>
     </div>
   </div>
 
   <div id="toast" class="toast" hidden></div>
 
+  <script src="mahjong.js"></script>
   <script src="app.js"></script>
+  <script src="study.js"></script>
 </body>
 </html>

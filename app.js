@@ -1362,6 +1362,8 @@ function renderAll() {
   renderStandings();
   renderPlayers();
   renderSettings();
+  // 用語集・聴牌トレーニング（study.js）
+  if (typeof renderStudy === 'function') renderStudy();
 }
 
 /* ---- 使い方ガイド ---- */

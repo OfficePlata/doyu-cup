@@ -496,3 +496,169 @@ main {
 .guide-faq dd { margin: 4px 0 0; font-size: 13px; line-height: 1.7; }
 
 body.guide-open { overflow: hidden; }
+
+/* ==========================================================================
+   学習タブ（用語集 / 聴牌トレーニング）
+   ========================================================================== */
+
+.subtabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.subtab {
+  flex: 1;
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 8px;
+  min-height: 44px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.subtab.is-active {
+  background: var(--green-700);
+  border-color: var(--green-700);
+  color: #fff;
+}
+
+/* ---- 牌 ---- */
+.mj-tile {
+  width: 30px;
+  height: 43px;
+  display: block;
+  flex: 0 0 auto;
+}
+.mj-hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: flex-end;
+}
+/* 出題の手牌13枚は1行に収める。収まらない画面では横スクロールさせ、
+   折り返して2段になるのを防ぐ（牌姿が読み取りにくくなるため）。 */
+.mj-hand-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.mj-hand-wrap .mj-hand {
+  gap: 1px;
+  justify-content: center;
+  flex-wrap: nowrap;
+  margin: 0 auto;
+}
+.mj-hand-wrap .mj-tile { width: 24px; height: 35px; }
+
+.mj-question {
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--green-900);
+  margin: 10px 0 0;
+}
+
+/* ---- 用語集 ---- */
+.gl-entry {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.gl-entry:first-child { padding-top: 0; }
+.gl-entry:last-child { border-bottom: 0; padding-bottom: 0; }
+.gl-term {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--green-900);
+  margin-bottom: 3px;
+}
+.gl-desc { font-size: 13px; line-height: 1.7; }
+.gl-tiles { margin-top: 8px; }
+.gl-waits {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--green-050);
+  border-radius: 8px;
+}
+.gl-waits-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--green-700);
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+.gl-waits-label.miss { background: var(--red); }
+.gl-waits-name { font-size: 12px; color: var(--muted); }
+
+/* ---- 牌を選ぶ ---- */
+.mj-picker-group { margin-bottom: 10px; }
+.mj-picker-group:last-child { margin-bottom: 0; }
+.mj-picker-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.mj-picker-row {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 3px;
+}
+.mj-pick {
+  appearance: none;
+  border: 2px solid transparent;
+  background: none;
+  padding: 1px;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+.mj-pick .mj-tile { width: 100%; height: auto; max-width: 34px; }
+.mj-pick.is-on {
+  border-color: var(--green-500);
+  background: var(--green-050);
+  box-shadow: 0 0 0 1px var(--green-500);
+}
+
+/* ---- 結果 ---- */
+.card-head.is-correct { background: #e7f6ec; color: #14653c; }
+.card-head.is-wrong { background: #fdecea; color: #96281b; }
+.mj-result-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.mj-shape {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+/* 5タブになるので、狭い画面では文字を詰める */
+@media (max-width: 420px) {
+  .tab { font-size: 12.5px; padding: 12px 2px; }
+  .mj-tile { width: 26px; height: 38px; }
+  .mj-hand-wrap .mj-tile { width: 22px; height: 32px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .card-head.is-correct { background: #17301f; color: #8fd6a8; }
+  .card-head.is-wrong { background: #351d1a; color: #f0928a; }
+  .mj-pick.is-on { background: #1f2e25; }
+}
