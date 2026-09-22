@@ -81,7 +81,7 @@ jobs:
           }
           probe index.html 'data-view="study"'  '学習タブ'
           probe study.js   'SHANTEN_PROBLEMS'   'イーシャンテントレーニング'
-          probe study.js   'TOURNAMENT_MEMBERS' '参加メンバー27名'
+          probe app.js     'TOURNAMENT_MEMBERS' '参加メンバー27名'
           probe mahjong.js 'tenpaiAcceptance'   '受け入れ計算'
           probe mahjong.js 'standardShanten'    'シャンテン数計算'
           probe app.js     'zeroSumAdjust'      '端数補正'
