@@ -164,7 +164,11 @@ function findWaits(tiles) {
   if (tiles.length !== 13) return [];
   const counts = toCounts(tiles);
   if (counts.some(c => c > 4)) return [];
+  return findWaitsFromCounts(counts);
+}
 
+/** findWaits の枚数配列版（受け入れ計算から何度も呼ぶので配列を作り直さない） */
+function findWaitsFromCounts(counts) {
   const waits = [];
   for (let t = 0; t < TILE_COUNT; t++) {
     if (counts[t] >= 4) continue;   // 4枚使い切っている牌は待てない
@@ -178,6 +182,122 @@ function findWaits(tiles) {
 /** 13枚が聴牌しているか */
 function isTenpai(tiles) {
   return findWaits(tiles).length > 0;
+}
+
+/* --------------------------------------------------------------------------
+   シャンテン数
+   -------------------------------------------------------------------------- */
+
+/**
+ * 通常形（4面子1雀頭）のシャンテン数。
+ * 面子・搭子・対子をブロックとして取り出し、8 - 2×面子 - ブロック で求める。
+ */
+function standardShanten(counts) {
+  const c = counts.slice();
+  let min = 8;
+
+  function dfs(i, melds, partials, pairs) {
+    if (melds + partials + pairs > 5) return;   // ブロックは5つまで
+
+    if (i >= TILE_COUNT) {
+      const blocks = melds + partials + pairs;
+      let s = 8 - melds * 2 - (partials + pairs);
+      // 雀頭になる対子がないまま5ブロック使うと、雀頭を作る1手が余分にかかる
+      if (pairs === 0 && blocks === 5) s += 1;
+      if (s < min) min = s;
+      return;
+    }
+    if (c[i] === 0) { dfs(i + 1, melds, partials, pairs); return; }
+
+    if (c[i] >= 3) {                                  // 刻子
+      c[i] -= 3; dfs(i, melds + 1, partials, pairs); c[i] += 3;
+    }
+    if (i < 27 && (i % 9) <= 6 && c[i + 1] && c[i + 2]) {   // 順子
+      c[i]--; c[i + 1]--; c[i + 2]--;
+      dfs(i, melds + 1, partials, pairs);
+      c[i]++; c[i + 1]++; c[i + 2]++;
+    }
+    if (c[i] >= 2) {                                  // 対子
+      c[i] -= 2; dfs(i, melds, partials, pairs + 1); c[i] += 2;
+    }
+    if (i < 27 && (i % 9) <= 7 && c[i + 1]) {         // 両面・辺張
+      c[i]--; c[i + 1]--; dfs(i, melds, partials + 1, pairs); c[i]++; c[i + 1]++;
+    }
+    if (i < 27 && (i % 9) <= 6 && c[i + 2]) {         // 嵌張
+      c[i]--; c[i + 2]--; dfs(i, melds, partials + 1, pairs); c[i]++; c[i + 2]++;
+    }
+    c[i]--; dfs(i, melds, partials, pairs); c[i]++;   // この牌は使わない
+  }
+
+  dfs(0, 0, 0, 0);
+  return min;
+}
+
+/** 七対子のシャンテン数 */
+function chiitoiShanten(counts) {
+  let pairs = 0, kinds = 0;
+  for (const n of counts) {
+    if (n > 0) kinds++;
+    if (n >= 2) pairs++;
+  }
+  return 6 - pairs + Math.max(0, 7 - kinds);
+}
+
+/** 国士無双のシャンテン数 */
+function kokushiShanten(counts) {
+  let kinds = 0, hasPair = false;
+  for (const t of TERMINALS_HONORS) {
+    if (counts[t] > 0) kinds++;
+    if (counts[t] >= 2) hasPair = true;
+  }
+  return 13 - kinds - (hasPair ? 1 : 0);
+}
+
+/**
+ * 13枚の手牌のシャンテン数。0 = 聴牌、1 = 一向聴。
+ * 通常形・七対子・国士無双のうち、もっとも小さい値を返す。
+ */
+function shanten(tiles) {
+  const counts = toCounts(tiles);
+  return Math.min(
+    standardShanten(counts),
+    chiitoiShanten(counts),
+    kokushiShanten(counts)
+  );
+}
+
+/**
+ * 13枚の手牌について、引けば聴牌になる牌（受け入れ）を求める。
+ * 判定は検証済みの聴牌判定だけを使う（シャンテン計算には依存しない）。
+ * @returns {number[]} 牌インデックスの配列（昇順）
+ */
+function tenpaiAcceptance(tiles) {
+  if (tiles.length !== 13) return [];
+  const counts = toCounts(tiles);
+  if (counts.some(c => c > 4)) return [];
+  if (findWaitsFromCounts(counts).length) return [];   // すでに聴牌
+
+  const out = [];
+  for (let t = 0; t < TILE_COUNT; t++) {
+    if (counts[t] >= 4) continue;
+    counts[t]++;
+    let ok = false;
+    for (let d = 0; d < TILE_COUNT && !ok; d++) {
+      if (counts[d] === 0) continue;
+      counts[d]--;
+      if (findWaitsFromCounts(counts).length) ok = true;
+      counts[d]++;
+    }
+    counts[t]--;
+    if (ok) out.push(t);
+  }
+  return out;
+}
+
+/** 受け入れ牌ごとの残り枚数（手牌に見えている分を引いた数） */
+function acceptanceWidth(tiles, accepted) {
+  const counts = toCounts(tiles);
+  return accepted.reduce((sum, t) => sum + (4 - counts[t]), 0);
 }
 
 /* --------------------------------------------------------------------------
@@ -314,6 +434,8 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     TILE_COUNT, tileToCode, codeToTile, tileName, parseHand, toCounts, sortTiles,
     canFormMelds, isSevenPairs, isThirteenOrphans, isWinningHand, findWaits, isTenpai,
+    standardShanten, chiitoiShanten, kokushiShanten, shanten,
+    tenpaiAcceptance, acceptanceWidth,
     tileSvg, handSvg,
   };
 }

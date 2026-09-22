@@ -115,6 +115,12 @@ const TENPAI_PROBLEMS = [
   { level: '入門', hand: '123456789m12p11s', shape: '辺張待ち', hint: '1と2の並びで待てるのは1種類だけです。' },
   { level: '入門', hand: '123456789m123p1s', shape: '単騎待ち', hint: '面子は足りています。雀頭がまだです。' },
   { level: '入門', hand: '123456789m11p11s', shape: 'シャンポン待ち', hint: '対子が2つあります。' },
+  { level: '入門', hand: '123m456m789m22p35s', shape: '嵌張待ち', hint: '索子が1つ飛んでいます。' },
+  { level: '入門', hand: '234m567m99p123s45s', shape: '両面待ち', hint: '索子の45に注目。' },
+  { level: '入門', hand: '111m234m567p22s78s', shape: '両面待ち', hint: '索子の78に注目。' },
+  { level: '入門', hand: '456m789m123p55s89s', shape: '辺張待ち', hint: '89の並びで待てるのは1種類です。' },
+  { level: '入門', hand: '333m456m789m12p99s', shape: '辺張待ち', hint: '筒子の12に注目。' },
+  { level: '入門', hand: '22m345m678m345p12s', shape: '辺張待ち', hint: '索子の12に注目。' },
   // 中級
   { level: '中級', hand: '123456789m1234p', shape: 'ノベタン', hint: '4枚の連続。両端が単騎になります。' },
   { level: '中級', hand: '123m456m11p34567s', shape: '三面張', hint: '索子の5枚つながりに注目。' },
@@ -123,13 +129,48 @@ const TENPAI_PROBLEMS = [
   { level: '中級', hand: '345m345p345s11z67s', shape: '三面張', hint: '索子の67に注目。三色も見えています。' },
   { level: '中級', hand: '234m22z345678p99s', shape: 'シャンポン＋両面', hint: '対子が2つあります。字牌も待ちに入ります。' },
   { level: '中級', hand: '111m456m789m2233p', shape: '複合形', hint: '筒子の2233は2通りの解釈ができます。' },
+  { level: '中級', hand: '345m678m11p22s345s', shape: 'シャンポン待ち', hint: '対子が2つあります。' },
+  { level: '中級', hand: '22334m567p789p11s', shape: '複合形', hint: '萬子の22334を落ち着いて分けましょう。' },
+  { level: '中級', hand: '111m999m345p22s67s', shape: '両面待ち', hint: '索子の67に注目。' },
+  { level: '中級', hand: '567m123p789p22s34s', shape: '両面待ち', hint: '索子の34に注目。' },
+  { level: '中級', hand: '111m22m345p678p99s', shape: 'シャンポン待ち', hint: '萬子と索子に対子があります。' },
+  { level: '中級', hand: '789m123m45m11p234s', shape: '両面待ち', hint: '萬子の45に注目。' },
+  { level: '中級', hand: '567m678m11p33s456s', shape: 'シャンポン待ち', hint: '筒子と索子に対子があります。' },
+  { level: '中級', hand: '234m22p345p11s678s', shape: 'シャンポン待ち', hint: '対子が2つあります。' },
   // 上級
   { level: '上級', hand: '123m789m11123p99s', shape: '複合形（3種）', hint: '筒子の11123は雀頭にも面子にもなります。' },
   { level: '上級', hand: '567m11p234567p33s', shape: '複合形', hint: '筒子が長くつながっています。' },
   { level: '上級', hand: '345678m234p11s99s', shape: '対子2つの単騎', hint: '面子は足りています。' },
   { level: '上級', hand: '111m22p33345678s', shape: '多面張（4種）', hint: '索子の8枚を落ち着いて分解しましょう。' },
+  { level: '上級', hand: '123m456m78m11p234s', shape: '三面張', hint: '萬子の78が鍵です。' },
+  { level: '上級', hand: '12m345m678m99p234s', shape: '三面張', hint: '萬子の並びを組み替えてみましょう。' },
+  { level: '中級', hand: '456m11p234p567p89s', shape: '辺張待ち', hint: '索子の89に注目。' },
+  { level: '中級', hand: '234m345p456s77z89m', shape: '辺張待ち', hint: '萬子の89に注目。' },
   { level: '上級', hand: '1112345678999m', shape: '九蓮宝燈（9面待ち）', hint: '同じ種類の牌だけ。何でも当たります。' },
   { level: '上級', hand: '19m19p19s1234567z', shape: '国士無双十三面待ち', hint: '么九牌が13種すべてそろっています。' },
+];
+
+/* イーシャンテンの問題。答え（受け入れ牌）はコード側で計算する。 */
+const SHANTEN_PROBLEMS = [
+  // 入門
+  { level: '入門', hand: '123m456m11p22p35s9s', shape: '対子2つ＋嵌張', hint: '9索は孤立しています。' },
+  { level: '入門', hand: '345m678m11p35p22s9s', shape: '対子2つ＋嵌張', hint: '筒子の35が嵌張です。' },
+  { level: '入門', hand: '234m567m11p22s46s9s', shape: '対子2つ＋嵌張', hint: '索子の46が嵌張です。' },
+  { level: '入門', hand: '22m33m456p789p12s4s', shape: '対子2つ＋搭子', hint: '萬子の対子がどちらか刻子になれば。' },
+  { level: '入門', hand: '123m456m22p34s67s9m', shape: '雀頭＋両面2つ', hint: '索子の34と67、どちらが埋まっても。' },
+  // 中級
+  { level: '中級', hand: '123m456m11p22p34s7s', shape: '対子2つ＋両面', hint: '筒子の対子と索子の両面。' },
+  { level: '中級', hand: '123m45m67m11p22p33s', shape: '搭子過多', hint: 'ブロックが多すぎます。' },
+  { level: '中級', hand: '567m11m22p345p67s9s', shape: '対子2つ＋両面', hint: '索子の67が両面です。' },
+  { level: '中級', hand: '456m789m123p45s7s8p', shape: '両面＋浮き牌', hint: '8筒と7索の扱いを考えましょう。' },
+  { level: '中級', hand: '123m456m789m12p13s', shape: '面子3つ＋搭子2つ', hint: '雀頭がまだありません。' },
+  // 上級
+  { level: '上級', hand: '123m456m789m12p45s', shape: '完全一向聴', hint: '面子3つ、搭子2つ。雀頭がない形です。' },
+  { level: '上級', hand: '123m456m789m11p25s', shape: '雀頭あり＋浮き牌', hint: '索子の2と5、どちらも使えます。' },
+  { level: '上級', hand: '22334455m789p1s5s', shape: '一盃口含みの多面', hint: '萬子の並びが複雑です。' },
+  { level: '上級', hand: '345m345p345s11z2s8s', shape: '三色＋浮き牌', hint: '索子がどこでも伸びます。' },
+  { level: '上級', hand: '19m19p19s12345z12m', shape: '国士無双の一向聴', hint: '足りない字牌は2つ。' },
+  { level: '上級', hand: '19m19p19s123456z2m', shape: '国士無双（十三面の一歩手前）', hint: '么九牌が12種そろっています。' },
 ];
 
 const LEVELS = ['入門', '中級', '上級'];
@@ -138,29 +179,60 @@ const LEVELS = ['入門', '中級', '上級'];
    画面の状態（対局データとは無関係なので保存しない）
    -------------------------------------------------------------------------- */
 
-let studyTab = 'glossary';        // 'glossary' | 'trainer'
+let studyTab = 'glossary';        // 'glossary' | 'tenpai' | 'shanten'
 let glossaryFilter = '';
-let trainerLevel = '入門';
-let trainerIndex = 0;
-let trainerSelection = new Set();
-let trainerAnswered = false;
-let trainerHintShown = false;
-let trainerScore = { correct: 0, total: 0 };
+
+/** トレーニングの設定。聴牌とイーシャンテンで共通の仕組みを使う。 */
+const TRAINERS = {
+  tenpai: {
+    title: '聴牌トレーニング',
+    problems: () => TENPAI_PROBLEMS,
+    question: '何待ち？',
+    lead: '13枚の手牌を見て、アガリ牌（待ち）をすべて選んでください。',
+    pickLabel: 'アガリ牌を選ぶ',
+    answerLabel: 'アガリ牌',
+    // 答えは毎回計算する（問題データに正解を持たせない）
+    solve: (tiles) => findWaits(tiles),
+    summary: (tiles, ans) => `${ans.length}種（${ans.map(tileName).join('・')}）`,
+  },
+  shanten: {
+    title: 'イーシャンテントレーニング',
+    problems: () => SHANTEN_PROBLEMS,
+    question: '何を引けばテンパイ？',
+    lead: 'イーシャンテン（あと1枚でテンパイ）の手牌です。引けばテンパイになる牌をすべて選んでください。',
+    pickLabel: '受け入れ牌を選ぶ',
+    answerLabel: '受け入れ',
+    solve: (tiles) => tenpaiAcceptance(tiles),
+    summary: (tiles, ans) =>
+      `${ans.length}種 ${acceptanceWidth(tiles, ans)}枚（${ans.map(tileName).join('・')}）`,
+  },
+};
+
+/** モードごとに進捗を分けて持つ */
+const trainerState = {
+  tenpai: newTrainerState(),
+  shanten: newTrainerState(),
+};
+
+function newTrainerState() {
+  return {
+    level: '入門',
+    index: 0,
+    selection: new Set(),
+    answered: false,
+    hintShown: false,
+    score: { correct: 0, total: 0 },
+  };
+}
 
 /* --------------------------------------------------------------------------
    共通パーツ
    -------------------------------------------------------------------------- */
 
-/** 牌の並びをHTMLとして差し込む要素を作る */
+/** 牌の並びを描画した要素を作る */
 function tilesEl(tiles, opt) {
   const span = el('span', { class: 'mj-hand' });
   span.innerHTML = handSvg(tiles, opt).replace(/^<span class="mj-hand">|<\/span>$/g, '');
-  return span;
-}
-
-function tileEl(t, opt) {
-  const span = el('span', { class: 'mj-slot' });
-  span.innerHTML = tileSvg(t, opt);
   return span;
 }
 
@@ -169,8 +241,6 @@ function tileEl(t, opt) {
    -------------------------------------------------------------------------- */
 
 function renderGlossary(root) {
-  const q = glossaryFilter.trim().toLowerCase();
-
   const search = el('input', {
     type: 'text',
     placeholder: '用語を検索（例: ウマ、フリテン）',
@@ -178,10 +248,7 @@ function renderGlossary(root) {
     oninput: (ev) => {
       glossaryFilter = ev.target.value;
       const list = $('#glossary-list');
-      if (list) {
-        list.textContent = '';
-        buildGlossaryList(list);
-      }
+      if (list) { list.textContent = ''; buildGlossaryList(list); }
     },
   });
 
@@ -192,7 +259,7 @@ function renderGlossary(root) {
     ),
     el('div', { class: 'card-body' },
       search,
-      el('p', { class: 'hint' }, '大会規定の言葉から役の名前まで。牌の図がある項目はタップ不要でそのまま見られます。')
+      el('p', { class: 'hint' }, '大会規定の言葉から役の名前まで。牌の図がある項目はそのまま見られます。')
     )
   ));
 
@@ -251,107 +318,110 @@ function buildGlossaryList(container) {
 }
 
 /* --------------------------------------------------------------------------
-   聴牌トレーニング
+   トレーニング（聴牌 / イーシャンテン共通）
    -------------------------------------------------------------------------- */
 
-function trainerProblems() {
-  return trainerLevel === 'すべて'
-    ? TENPAI_PROBLEMS
-    : TENPAI_PROBLEMS.filter(p => p.level === trainerLevel);
+function trainerMode() {
+  return studyTab === 'shanten' ? 'shanten' : 'tenpai';
 }
 
+function trainerProblems(mode) {
+  const st = trainerState[mode];
+  const all = TRAINERS[mode].problems();
+  return st.level === 'すべて' ? all : all.filter(p => p.level === st.level);
+}
+
+/** 現在の問題（テストからも参照する） */
 function currentProblem() {
-  const list = trainerProblems();
+  const mode = trainerMode();
+  const list = trainerProblems(mode);
   if (!list.length) return null;
-  return list[trainerIndex % list.length];
+  return list[trainerState[mode].index % list.length];
 }
 
-function resetTrainer(level) {
-  if (level) trainerLevel = level;
-  trainerIndex = 0;
-  trainerSelection = new Set();
-  trainerAnswered = false;
-  trainerHintShown = false;
-  trainerScore = { correct: 0, total: 0 };
-}
-
-function renderTrainer(root) {
-  const list = trainerProblems();
-  const problem = currentProblem();
-
-  /* 難易度の切り替え */
-  const levelRow = el('div', { class: 'row' },
-    ...['入門', '中級', '上級', 'すべて'].map(lv => el('button', {
-      class: 'btn small' + (lv === trainerLevel ? ' primary' : ''),
-      onclick: () => { resetTrainer(lv); renderStudy(); },
-    }, lv))
-  );
+function renderTrainer(root, mode) {
+  const cfg = TRAINERS[mode];
+  const st = trainerState[mode];
+  const list = trainerProblems(mode);
 
   root.appendChild(el('div', { class: 'card' },
     el('div', { class: 'card-head' },
-      el('span', {}, '聴牌トレーニング'),
-      el('span', { class: 'pill' }, `${trainerScore.correct} / ${trainerScore.total} 正解`)
+      el('span', {}, cfg.title),
+      el('span', { class: 'pill' }, `${st.score.correct} / ${st.score.total} 正解`)
     ),
     el('div', { class: 'card-body' },
-      levelRow,
-      el('p', { class: 'hint' }, '13枚の手牌を見て、アガリ牌（待ち）をすべて選んでください。')
+      el('div', { class: 'row' },
+        ...['入門', '中級', '上級', 'すべて'].map(lv => el('button', {
+          class: 'btn small' + (lv === st.level ? ' primary' : ''),
+          onclick: () => {
+            trainerState[mode] = { ...newTrainerState(), level: lv };
+            renderStudy();
+          },
+        }, lv))
+      ),
+      el('p', { class: 'hint' }, cfg.lead)
     )
   ));
 
+  const problem = list.length ? list[st.index % list.length] : null;
   if (!problem) {
     root.appendChild(el('div', { class: 'card' }, el('div', { class: 'empty' }, '問題がありません')));
     return;
   }
 
   const tiles = parseHand(problem.hand);
-  const answer = findWaits(tiles);
+  const answer = cfg.solve(tiles);
 
-  /* 出題 */
   root.appendChild(el('div', { class: 'card' },
     el('div', { class: 'card-head' },
-      el('span', {}, `第${(trainerIndex % list.length) + 1}問 / 全${list.length}問`),
+      el('span', {}, `第${(st.index % list.length) + 1}問 / 全${list.length}問`),
       el('span', { class: 'pill' }, problem.level)
     ),
     el('div', { class: 'card-body' },
       el('div', { class: 'mj-hand-wrap' }, tilesEl(tiles)),
-      el('p', { class: 'mj-question' }, '何待ち？'),
-      trainerHintShown && !trainerAnswered
+      el('p', { class: 'mj-question' }, cfg.question),
+      st.hintShown && !st.answered
         ? el('p', { class: 'guide-note', style: 'margin:8px 0 0' }, 'ヒント: ' + problem.hint)
         : null
     )
   ));
 
-  /* 牌を選ぶ */
-  if (!trainerAnswered) {
+  if (!st.answered) {
     root.appendChild(el('div', { class: 'card' },
       el('div', { class: 'card-head' },
-        el('span', {}, 'アガリ牌を選ぶ'),
-        el('span', { class: 'pill' }, `${trainerSelection.size}枚 選択中`)
+        el('span', {}, cfg.pickLabel),
+        el('span', { class: 'pill' }, `${st.selection.size}種 選択中`)
       ),
       el('div', { class: 'card-body' },
-        buildTilePicker(),
+        buildTilePicker(st),
         el('div', { class: 'row', style: 'margin-top:12px' },
           el('button', {
             class: 'btn primary',
-            disabled: trainerSelection.size === 0,
-            onclick: () => { checkTrainerAnswer(answer); },
+            disabled: st.selection.size === 0,
+            onclick: () => {
+              const picked = [...st.selection].sort((a, b) => a - b);
+              st.answered = true;
+              st.score.total += 1;
+              if (JSON.stringify(picked) === JSON.stringify(answer)) st.score.correct += 1;
+              renderStudy();
+            },
           }, '答え合わせ'),
           el('button', {
             class: 'btn small',
-            onclick: () => { trainerSelection = new Set(); renderStudy(); },
+            onclick: () => { st.selection = new Set(); renderStudy(); },
           }, '選択をクリア'),
-          !trainerHintShown
-            ? el('button', { class: 'btn small ghost', onclick: () => { trainerHintShown = true; renderStudy(); } }, 'ヒント')
+          !st.hintShown
+            ? el('button', { class: 'btn small ghost', onclick: () => { st.hintShown = true; renderStudy(); } }, 'ヒント')
             : null
         )
       )
     ));
   } else {
-    root.appendChild(buildTrainerResult(problem, answer, list));
+    root.appendChild(buildTrainerResult(mode, problem, tiles, answer, list));
   }
 }
 
-function buildTilePicker() {
+function buildTilePicker(st) {
   const wrap = el('div', { class: 'mj-picker' });
   const groups = [
     { label: '萬子', from: 0, to: 8 },
@@ -364,12 +434,12 @@ function buildTilePicker() {
     for (let t = g.from; t <= g.to; t++) {
       const btn = el('button', {
         type: 'button',
-        class: 'mj-pick' + (trainerSelection.has(t) ? ' is-on' : ''),
-        'aria-pressed': trainerSelection.has(t) ? 'true' : 'false',
+        class: 'mj-pick' + (st.selection.has(t) ? ' is-on' : ''),
+        'aria-pressed': st.selection.has(t) ? 'true' : 'false',
         'aria-label': tileName(t),
         onclick: () => {
-          if (trainerSelection.has(t)) trainerSelection.delete(t);
-          else trainerSelection.add(t);
+          if (st.selection.has(t)) st.selection.delete(t);
+          else st.selection.add(t);
           renderStudy();
         },
       });
@@ -382,27 +452,20 @@ function buildTilePicker() {
   return wrap;
 }
 
-function checkTrainerAnswer(answer) {
-  const picked = [...trainerSelection].sort((a, b) => a - b);
+function buildTrainerResult(mode, problem, tiles, answer, list) {
+  const cfg = TRAINERS[mode];
+  const st = trainerState[mode];
+  const picked = [...st.selection].sort((a, b) => a - b);
   const correct = JSON.stringify(picked) === JSON.stringify(answer);
-  trainerAnswered = true;
-  trainerScore.total += 1;
-  if (correct) trainerScore.correct += 1;
-  renderStudy();
-}
-
-function buildTrainerResult(problem, answer, list) {
-  const picked = [...trainerSelection].sort((a, b) => a - b);
-  const correct = JSON.stringify(picked) === JSON.stringify(answer);
-  const missed = answer.filter(t => !trainerSelection.has(t));
+  const missed = answer.filter(t => !st.selection.has(t));
   const extra = picked.filter(t => !answer.includes(t));
 
   const body = el('div', { class: 'card-body' },
     el('div', { class: 'mj-result-line' },
-      el('span', { class: 'gl-waits-label' }, '正解'),
-      tilesEl(answer, { keepOrder: true }),
-      el('span', { class: 'gl-waits-name' }, `${answer.length}種（${answer.map(tileName).join('・')}）`)
+      el('span', { class: 'gl-waits-label' }, cfg.answerLabel),
+      tilesEl(answer, { keepOrder: true })
     ),
+    el('p', { class: 'mj-shape' }, cfg.summary(tiles, answer)),
     el('p', { class: 'mj-shape' }, `形: ${problem.shape}`)
   );
 
@@ -423,23 +486,23 @@ function buildTrainerResult(problem, answer, list) {
     el('button', {
       class: 'btn primary',
       onclick: () => {
-        trainerIndex = (trainerIndex + 1) % list.length;
-        trainerSelection = new Set();
-        trainerAnswered = false;
-        trainerHintShown = false;
+        st.index = (st.index + 1) % list.length;
+        st.selection = new Set();
+        st.answered = false;
+        st.hintShown = false;
         renderStudy();
       },
     }, '次の問題 →'),
     el('button', {
       class: 'btn small',
-      onclick: () => { resetTrainer(); renderStudy(); },
+      onclick: () => { trainerState[mode] = { ...newTrainerState(), level: st.level }; renderStudy(); },
     }, '最初から')
   ));
 
   return el('div', { class: 'card' },
     el('div', { class: 'card-head ' + (correct ? 'is-correct' : 'is-wrong') },
       el('span', {}, correct ? '◯ 正解' : '✕ 不正解'),
-      el('span', { class: 'pill' }, `${trainerScore.correct} / ${trainerScore.total}`)
+      el('span', { class: 'pill' }, `${st.score.correct} / ${st.score.total}`)
     ),
     body
   );
@@ -454,17 +517,18 @@ function renderStudy() {
   if (!root) return;
   root.textContent = '';
 
+  const tabs = [
+    ['glossary', '用語集'],
+    ['tenpai', '聴牌トレ'],
+    ['shanten', 'イーシャンテン'],
+  ];
   root.appendChild(el('div', { class: 'subtabs' },
-    el('button', {
-      class: 'subtab' + (studyTab === 'glossary' ? ' is-active' : ''),
-      onclick: () => { studyTab = 'glossary'; renderStudy(); },
-    }, '用語集'),
-    el('button', {
-      class: 'subtab' + (studyTab === 'trainer' ? ' is-active' : ''),
-      onclick: () => { studyTab = 'trainer'; renderStudy(); },
-    }, '聴牌トレーニング')
+    ...tabs.map(([key, label]) => el('button', {
+      class: 'subtab' + (studyTab === key ? ' is-active' : ''),
+      onclick: () => { studyTab = key; renderStudy(); window.scrollTo({ top: 0 }); },
+    }, label))
   ));
 
   if (studyTab === 'glossary') renderGlossary(root);
-  else renderTrainer(root);
+  else renderTrainer(root, trainerMode());
 }

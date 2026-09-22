@@ -515,10 +515,11 @@ body.guide-open { overflow: hidden; }
   font: inherit;
   font-weight: 700;
   font-size: 14px;
-  padding: 10px 8px;
+  padding: 10px 6px;
   min-height: 44px;
   border-radius: 10px;
   cursor: pointer;
+  white-space: nowrap;   /* 「イーシャンテン」が2行に折り返さないように */
 }
 .subtab.is-active {
   background: var(--green-700);
@@ -653,6 +654,7 @@ body.guide-open { overflow: hidden; }
 /* 5タブになるので、狭い画面では文字を詰める */
 @media (max-width: 420px) {
   .tab { font-size: 12.5px; padding: 12px 2px; }
+  .subtab { font-size: 12px; padding: 10px 2px; }
   .mj-tile { width: 26px; height: 38px; }
   .mj-hand-wrap .mj-tile { width: 22px; height: 32px; }
 }
