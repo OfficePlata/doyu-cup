@@ -53,26 +53,41 @@ jobs:
           echo "## 公開中のバージョン" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           base=https://www.doyu-cup.jp
+          # コマンド置換は末尾の改行を落として必ず不一致になるため、
+          # 必ずファイルに保存してバイト単位で比較する
+          mkdir -p /tmp/live
           for f in index.html styles.css app.js mahjong.js study.js; do
-            live=$(curl -sS --max-time 20 "$base/$f" 2>/dev/null || true)
-            if [ -z "$live" ]; then
-              echo "  $f : 取得できず ⚠️" | tee -a "$GITHUB_STEP_SUMMARY"
+            if ! curl -sS -L --max-time 20 -o "/tmp/live/$f" "$base/$f" 2>/dev/null; then
+              echo "  $f : 取得できず" | tee -a "$GITHUB_STEP_SUMMARY"
               continue
             fi
-            lh=$(printf '%s' "$live" | sha256sum | cut -c1-12)
-            rh=$(sha256sum "$f" 2>/dev/null | cut -c1-12)
+            lh=$(sha256sum "/tmp/live/$f" | cut -c1-12)
+            rh=$(sha256sum "$f" | cut -c1-12)
+            ls=$(wc -c < "/tmp/live/$f"); rs=$(wc -c < "$f")
             if [ "$lh" = "$rh" ]; then
-              echo "  $f : 最新と一致 ✅ ($lh)" | tee -a "$GITHUB_STEP_SUMMARY"
+              echo "  $f : 最新と一致 OK (${rs}バイト)" | tee -a "$GITHUB_STEP_SUMMARY"
             else
-              echo "  $f : 古い版が公開中 ⚠️ (公開 $lh / リポジトリ $rh)" | tee -a "$GITHUB_STEP_SUMMARY"
+              echo "  $f : 不一致 公開${ls}バイト($lh) / リポジトリ${rs}バイト($rh)" | tee -a "$GITHUB_STEP_SUMMARY"
             fi
           done
           echo "" | tee -a "$GITHUB_STEP_SUMMARY"
-          echo "  --- 学習タブが含まれるか ---" | tee -a "$GITHUB_STEP_SUMMARY"
-          html=$(curl -sS --max-time 20 "$base/" || true)
-          for marker in 'data-view="study"' 'mahjong.js' 'study.js' 'guide-open'; do
-            printf '%s' "$html" | grep -q -- "$marker"               && echo "  $marker : あり ✅" | tee -a "$GITHUB_STEP_SUMMARY"               || echo "  $marker : なし ⚠️" | tee -a "$GITHUB_STEP_SUMMARY"
-          done
+          echo "  --- 公開中のファイルに含まれる機能 ---" | tee -a "$GITHUB_STEP_SUMMARY"
+          probe () {
+            if grep -q -- "$2" "/tmp/live/$1" 2>/dev/null; then
+              echo "  $3 : あり" | tee -a "$GITHUB_STEP_SUMMARY"
+            else
+              echo "  $3 : なし（この版には未反映）" | tee -a "$GITHUB_STEP_SUMMARY"
+            fi
+          }
+          probe index.html 'data-view="study"'  '学習タブ'
+          probe study.js   'SHANTEN_PROBLEMS'   'イーシャンテントレーニング'
+          probe study.js   'TOURNAMENT_MEMBERS' '参加メンバー27名'
+          probe mahjong.js 'tenpaiAcceptance'   '受け入れ計算'
+          probe mahjong.js 'standardShanten'    'シャンテン数計算'
+          probe app.js     'zeroSumAdjust'      '端数補正'
+          liveq=$(grep -o "hand: '" /tmp/live/study.js 2>/dev/null | wc -l)
+          repoq=$(grep -o "hand: '" study.js | wc -l)
+          echo "  問題数: 公開 ${liveq}問 / リポジトリ ${repoq}問" | tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       # ---------------------------------------------------------------
